@@ -1,13 +1,13 @@
 # Library Management System
 
-Note: Developed as per the requirement. 
+Just to let you know, it was developed according to the requirements. 
 
 Run the application using `gradle -i bootRun`
 
 ### RESTful endpoints and sample data
 
-All services protected by using jwt authentication.
-Get jwt token using authentication endpoint :
+All services are protected by using JWT authentication.
+Get JWT token using the login endpoint and call library endpoints.
 
 There are two users in the library system:
 
