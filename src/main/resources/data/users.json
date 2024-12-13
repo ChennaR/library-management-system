@@ -1,0 +1,17 @@
+{
+  "dev" : {
+    "username" : "dev",
+    "password" : "1234",
+    "role" : "ROLE_USER"
+  },
+  "admin" : {
+    "username" : "admin",
+    "password" : "0102",
+    "role" : "ROLE_ADMIN"
+  },
+  "test" : {
+    "username" : "test",
+    "password" : "6789",
+    "role" : "ROLE_TEST"
+  }
+}

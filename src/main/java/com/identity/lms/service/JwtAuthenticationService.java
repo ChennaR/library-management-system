@@ -1,5 +1,6 @@
 package com.identity.lms.service;
 
+import com.identity.lms.config.LibrarySecurityJwtConfig;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -11,9 +12,11 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.spec.SecretKeySpec;
-import javax.xml.bind.DatatypeConverter;
 import java.security.Key;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Service to generate JWT tokens and validating
@@ -22,12 +25,15 @@ import java.util.*;
 @Service
 @Slf4j
 public class JwtAuthenticationService {
-    private static final String SECRET = Base64.getEncoder().encodeToString("Testing JWT".getBytes());
-    private static final String ISSUER = "secretService";
     private static final SignatureAlgorithm SIGNATURE_ALGORITHM = SignatureAlgorithm.HS256;
-    private static final Key SIGNING_KEY = new SecretKeySpec(DatatypeConverter.parseBase64Binary(SECRET),
-            SIGNATURE_ALGORITHM.getJcaName());
-    private static final int DEFAULT_EXPIRY_TIME = 1000 * 60 * 30;//30sec
+    private final Key signingKey;
+    private final LibrarySecurityJwtConfig librarySecurityJwtConfig;
+
+    public JwtAuthenticationService(LibrarySecurityJwtConfig librarySecurityJwtConfig) {
+        this.librarySecurityJwtConfig = librarySecurityJwtConfig;
+        signingKey = new SecretKeySpec(librarySecurityJwtConfig.getSecret().getBytes(),
+                SIGNATURE_ALGORITHM.getJcaName());
+    }
 
     /**
      * Creates JSON web token using username.
@@ -45,9 +51,10 @@ public class JwtAuthenticationService {
                 .setId(createJwtId())
                 .setIssuedAt(new Date())
                 .setSubject(user.getUsername())
-                .setIssuer(ISSUER)
-                .setExpiration(new Date(System.currentTimeMillis() + DEFAULT_EXPIRY_TIME))
-                .signWith(SIGNATURE_ALGORITHM, SIGNING_KEY)
+                .setIssuer(librarySecurityJwtConfig.getIssuer())
+                .setExpiration(new Date(System.currentTimeMillis() +
+                        librarySecurityJwtConfig.getExpiry().toMillis()))
+                .signWith(SIGNATURE_ALGORITHM, signingKey)
                 .claim("username", user.getUsername())
                 .claim("roles", grantedAuthorities)
                 .compact();
@@ -64,7 +71,7 @@ public class JwtAuthenticationService {
         Optional<Claims> claims = Optional.empty();
         try {
             claims = Optional.of(Jwts.parser()
-                    .setSigningKey(DatatypeConverter.parseBase64Binary(SECRET))
+                    .setSigningKey(librarySecurityJwtConfig.getSecret().getBytes())
                     .parseClaimsJws(token)
                     .getBody());
         } catch (Exception ex) {
